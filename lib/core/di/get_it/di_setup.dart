@@ -8,6 +8,7 @@ import 'package:smart_kitchen/features/inventory/data/data_sources/local/databas
 final _featureContainers = <FeatureDIContainer>[
   SettingsDIContainer(),
   InventoryDIContainer(),
+  ScannerDIContainer(),
 ];
 
 const String _openFoodFactsBaseUrl =
