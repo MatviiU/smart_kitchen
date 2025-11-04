@@ -1,5 +1,5 @@
+import 'package:smart_kitchen/core/database/app_database.dart';
 import 'package:smart_kitchen/domain/entities/product_entity.dart';
-import 'package:smart_kitchen/features/inventory/data/data_sources/local/database/app_database.dart';
 import 'package:smart_kitchen/features/inventory/data/data_sources/local/inventory_local_data_source.dart';
 import 'package:smart_kitchen/features/inventory/data/mappers/product_mapper.dart';
 

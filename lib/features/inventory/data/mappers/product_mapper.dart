@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
+import 'package:smart_kitchen/core/database/app_database.dart';
 import 'package:smart_kitchen/domain/entities/nutrition_entity.dart';
 import 'package:smart_kitchen/domain/entities/product_entity.dart';
-import 'package:smart_kitchen/features/inventory/data/data_sources/local/database/app_database.dart';
 import 'package:smart_kitchen/features/inventory/data/data_sources/remote/models/nutrition_remote_dto.dart';
 import 'package:smart_kitchen/features/inventory/data/data_sources/remote/models/product_remote_dto.dart';
 
