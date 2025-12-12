@@ -10,6 +10,7 @@ import 'package:smart_kitchen/features/inventory/data/data_sources/remote/invent
 import 'package:smart_kitchen/features/inventory/data/repositories/inventory_repository.dart';
 import 'package:smart_kitchen/features/inventory/data/repositories/inventory_repository_impl.dart';
 import 'package:smart_kitchen/features/inventory/presentation/cubit/inventory_cubit.dart';
+import 'package:smart_kitchen/features/product_details/presentation/cubit/product_details_cubit.dart';
 import 'package:smart_kitchen/features/recipes/data/data_sources/local/recipe_local_data_source.dart';
 import 'package:smart_kitchen/features/recipes/data/data_sources/local/recipe_local_data_source_impl.dart';
 import 'package:smart_kitchen/features/recipes/data/data_sources/remote/recipe_remote_data_source.dart';
@@ -60,7 +61,9 @@ class InventoryDIContainer implements FeatureDIContainer {
         ),
       )
       ..registerLazySingleton<InventoryLocalDataSource>(
-        () => InventoryLocalDataSourceImpl(database: sl<AppDatabase>()),
+        () => InventoryLocalDataSourceImpl(
+          database: sl<AppDatabase>(),
+        ),
       )
       ..registerLazySingleton<InventoryRepository>(
         () => InventoryRepositoryImpl(
@@ -101,5 +104,14 @@ class RecipeDIContainer implements FeatureDIContainer {
       ..registerFactory<RecipesCubit>(
         () => RecipesCubit(recipeRepository: sl<RecipeRepository>()),
       );
+  }
+}
+
+class ProductDetailsDIContainer implements FeatureDIContainer {
+  @override
+  Future<void> registerDependencies(GetIt sl) async {
+    sl.registerFactory<ProductDetailsCubit>(
+      () => ProductDetailsCubit(inventoryRepository: sl<InventoryRepository>()),
+    );
   }
 }

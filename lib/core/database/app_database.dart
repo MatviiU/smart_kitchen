@@ -11,7 +11,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -22,6 +22,9 @@ class AppDatabase extends _$AppDatabase {
       onUpgrade: (Migrator migrator, int from, int to) async {
         if (from == 1) {
           await migrator.createTable(favoriteRecipes);
+        }
+        if (from <= 2) {
+          await migrator.addColumn(products, products.isFavorite);
         }
       },
     );
@@ -51,6 +54,28 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<List<Product>> getAllProductsFromDb() => select(products).get();
+
+  Future<bool> getProductFavoriteStatus({required String barcode}) async {
+    final product = await (select(
+      products,
+    )..where((tbl) => tbl.barcode.equals(barcode))).getSingleOrNull();
+    return product?.isFavorite ?? false;
+  }
+
+  Future<void> updateProductFavoriteStatus({
+    required String barcode,
+    required bool isFavorite,
+  }) async {
+    final query = update(products)..where((tbl) => tbl.barcode.equals(barcode));
+
+    await query.write(ProductsCompanion(isFavorite: Value(isFavorite)));
+  }
+
+  Stream<List<Product>> watchFavoriteProducts() {
+    return (select(
+      products,
+    )..where((tbl) => tbl.isFavorite.equals(true))).watch();
+  }
 
   Future<List<FavoriteRecipe>> getAllFavoriteRecipesFromDb() =>
       select(favoriteRecipes).get();

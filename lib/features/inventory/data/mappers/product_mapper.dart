@@ -6,7 +6,10 @@ import 'package:smart_kitchen/features/inventory/data/data_sources/remote/models
 import 'package:smart_kitchen/features/inventory/data/data_sources/remote/models/product_remote_dto.dart';
 
 class ProductMapper {
-  static ProductEntity mapRemoteDtoToEntity(ProductRemoteDto dto) {
+  static ProductEntity mapRemoteDtoToEntity(
+    ProductRemoteDto dto,
+    bool isFavoriteStatus,
+  ) {
     return ProductEntity(
       barcode: dto.code ?? '',
       name: dto.productName ?? 'Unknown Product',
@@ -16,6 +19,7 @@ class ProductMapper {
       categories: dto.categories ?? '',
       ingredients: dto.ingredientsText ?? '',
       allergens: dto.allergens ?? '',
+      isFavorite: isFavoriteStatus,
       nutrition: _mapNutritionDtoToEntity(dto.nutriments),
     );
   }
@@ -43,6 +47,7 @@ class ProductMapper {
       categories: dbProduct.categories ?? '',
       ingredients: dbProduct.ingredients ?? '',
       allergens: dbProduct.allergens ?? '',
+      isFavorite: dbProduct.isFavorite,
       nutrition: NutritionEntity(
         calories: dbProduct.calories ?? 0.0,
         protein: dbProduct.protein ?? 0.0,
@@ -62,6 +67,7 @@ class ProductMapper {
       categories: Value(entity.categories),
       ingredients: Value(entity.ingredients),
       allergens: Value(entity.allergens),
+      isFavorite: Value(entity.isFavorite),
       calories: Value(entity.nutrition.calories),
       protein: Value(entity.nutrition.protein),
       fat: Value(entity.nutrition.fat),

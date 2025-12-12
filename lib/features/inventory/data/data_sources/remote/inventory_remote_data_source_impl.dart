@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:smart_kitchen/core/network/open_food_facts_api.dart';
 import 'package:smart_kitchen/features/inventory/data/data_sources/remote/inventory_remote_data_source.dart';
 import 'package:smart_kitchen/features/inventory/data/data_sources/remote/models/product_remote_dto.dart';
+import 'package:smart_kitchen/features/inventory/exeptions/product_not_found_exeption.dart';
 
 class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
   InventoryRemoteDataSourceImpl({required OpenFoodFactsApi openFoodFactsApi})
@@ -21,7 +22,7 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
       if (response.status == 1 && response.product != null) {
         return response.product!;
       } else {
-        throw Exception('Product not found: ${response.statusVerbose}');
+        throw ProductNotFoundException(barcode: barcode);
       }
     } on DioException catch (e) {
       throw Exception('Network error: ${e.message}');

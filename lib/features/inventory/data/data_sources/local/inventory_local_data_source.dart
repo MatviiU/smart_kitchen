@@ -8,4 +8,8 @@ abstract interface class InventoryLocalDataSource {
   Future<void> saveProductToDb({required ProductEntity product});
 
   Future<void> deleteProductByBarcodeFromDb({required String barcode});
+
+  Future<void> toggleProductFavoriteStatus({required String barcode});
+
+  Future<bool> isProductFavorite({required String barcode});
 }

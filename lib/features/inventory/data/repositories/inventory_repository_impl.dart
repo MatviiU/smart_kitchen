@@ -3,6 +3,7 @@ import 'package:smart_kitchen/features/inventory/data/data_sources/local/invento
 import 'package:smart_kitchen/features/inventory/data/data_sources/remote/inventory_remote_data_source.dart';
 import 'package:smart_kitchen/features/inventory/data/mappers/product_mapper.dart';
 import 'package:smart_kitchen/features/inventory/data/repositories/inventory_repository.dart';
+import 'package:smart_kitchen/features/inventory/exeptions/product_not_found_exeption.dart';
 
 class InventoryRepositoryImpl implements InventoryRepository {
   const InventoryRepositoryImpl({
@@ -23,11 +24,12 @@ class InventoryRepositoryImpl implements InventoryRepository {
 
   @override
   Future<List<ProductEntity>> getAllProducts() async {
-    return _inventoryLocalDataSource.getAllProductsFromDb();
+    final products = await _inventoryLocalDataSource.getAllProductsFromDb();
+    return products;
   }
 
   @override
-  Future<ProductEntity> getProductByBarcode({required String barcode}) async {
+  Future<ProductEntity?> getProductByBarcode({required String barcode}) async {
     try {
       final localProduct = await _inventoryLocalDataSource
           .getProductByBarcodeFromDb(barcode: barcode);
@@ -37,12 +39,18 @@ class InventoryRepositoryImpl implements InventoryRepository {
       final remoteProductDto = await _inventoryRemoteDataSource
           .getProductByBarcodeFromApi(barcode: barcode);
 
+      final isFavoriteStatus = await _inventoryLocalDataSource
+          .isProductFavorite(barcode: barcode);
+
       final productEntity = ProductMapper.mapRemoteDtoToEntity(
         remoteProductDto,
+        isFavoriteStatus,
       );
 
       await _inventoryLocalDataSource.saveProductToDb(product: productEntity);
       return productEntity;
+    } on ProductNotFoundException {
+      return null;
     } catch (e) {
       rethrow;
     }
@@ -51,5 +59,12 @@ class InventoryRepositoryImpl implements InventoryRepository {
   @override
   Future<void> saveProduct({required ProductEntity product}) async {
     await _inventoryLocalDataSource.saveProductToDb(product: product);
+  }
+
+  @override
+  Future<void> toggleProductFavoriteStatus({required String barcode}) async {
+    await _inventoryLocalDataSource.toggleProductFavoriteStatus(
+      barcode: barcode,
+    );
   }
 }

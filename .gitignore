@@ -31,7 +31,6 @@ android/app/build/
 
 android/key.properties
 
-
 # iOS
 # Ignore Pods, Xcode workspace settings, and generated files
 # ----------------------------------------------------------------
@@ -55,3 +54,6 @@ DerivedData/
 *.tmp
 *.swp
 *.lock
+
+# FVM Version Cache
+.fvm/

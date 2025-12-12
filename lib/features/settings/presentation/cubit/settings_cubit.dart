@@ -20,7 +20,7 @@ class SettingsCubit extends Cubit<SettingsState> {
     }
   }
 
-  Future<void> saveDarkMode(bool isDarkMode) async {
+  Future<void> saveDarkMode({required bool isDarkMode}) async {
     final currentState = state;
     if (currentState is SettingsLoaded) {
       final updatedSettings = currentState.settings.copyWith(
@@ -36,7 +36,9 @@ class SettingsCubit extends Cubit<SettingsState> {
     }
   }
 
-  Future<void> saveMeasurementUnit(MeasurementUnit measurementUnit) async {
+  Future<void> saveMeasurementUnit({
+    required MeasurementUnit measurementUnit,
+  }) async {
     final currentState = state;
     if (currentState is SettingsLoaded) {
       final updatedSettings = currentState.settings.copyWith(
@@ -52,7 +54,7 @@ class SettingsCubit extends Cubit<SettingsState> {
     }
   }
 
-  Future<void> saveNotificationExpiry(int days) async {
+  Future<void> saveNotificationExpiry({required int days}) async {
     final currentState = state;
     if (currentState is SettingsLoaded) {
       final updatedSettings = currentState.settings.copyWith(

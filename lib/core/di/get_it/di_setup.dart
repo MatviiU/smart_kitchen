@@ -12,6 +12,7 @@ final _featureContainers = <FeatureDIContainer>[
   InventoryDIContainer(),
   ScannerDIContainer(),
   RecipeDIContainer(),
+  ProductDetailsDIContainer(),
 ];
 
 const String _openFoodFactsBaseUrl =

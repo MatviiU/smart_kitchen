@@ -40,4 +40,20 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
     final dbCompanion = ProductMapper.mapEntityToDbCompanion(product);
     return _database.saveProductToDb(product: dbCompanion);
   }
+
+  @override
+  Future<void> toggleProductFavoriteStatus({required String barcode}) async {
+    final currentStatus = await _database.getProductFavoriteStatus(
+      barcode: barcode,
+    );
+    await _database.updateProductFavoriteStatus(
+      barcode: barcode,
+      isFavorite: !currentStatus,
+    );
+  }
+
+  @override
+  Future<bool> isProductFavorite({required String barcode}) async {
+    return _database.getProductFavoriteStatus(barcode: barcode);
+  }
 }
