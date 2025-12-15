@@ -19,11 +19,20 @@ class InventoryPage extends StatelessWidget {
         title: const Text('Inventory'),
         centerTitle: false,
         actions: [
-          IconButton(
-            onPressed: () {
-              // TODO: Додаткові опції
-            },
+          PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
+            onSelected: (result) {
+              switch (result) {
+                case 'recipes':
+                  context.goNamed(RouteNames.recipesPage);
+                case 'inventory':
+                  context.goNamed(RouteNames.inventoryPage);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'recipes', child: Text('Recipes')),
+              const PopupMenuItem(value: 'inventory', child: Text('Inventory')),
+            ],
           ),
         ],
       ),

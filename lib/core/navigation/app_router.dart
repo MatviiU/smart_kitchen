@@ -7,6 +7,7 @@ import 'package:smart_kitchen/features/inventory/presentation/ui/screens/add_pro
 import 'package:smart_kitchen/features/inventory/presentation/ui/screens/inventory_page.dart';
 import 'package:smart_kitchen/features/product_details/presentation/cubit/product_details_cubit.dart';
 import 'package:smart_kitchen/features/product_details/presentation/ui/screens/product_details_screen.dart';
+import 'package:smart_kitchen/features/recipes/presentation/ui/screens/recipes_page.dart';
 
 final router = GoRouter(
   initialLocation: '/inventory-page',
@@ -50,6 +51,11 @@ final router = GoRouter(
           },
         ),
       ],
+    ),
+    GoRoute(
+      path: '/recipes-page',
+      name: RouteNames.recipesPage,
+      builder: (context, state) => const RecipesPage(),
     ),
   ],
 );

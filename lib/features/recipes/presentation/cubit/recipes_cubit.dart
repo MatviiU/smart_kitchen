@@ -37,13 +37,13 @@ class RecipesCubit extends Cubit<RecipesState> {
     }
   }
 
-  Future<void> getFavoriteRecipes() async {
-    emit(RecipesLoading());
-    try {
-      final recipes = await _recipeRepository.getFavoriteRecipes();
-      emit(RecipesFavoritesLoaded(recipes: recipes));
-    } catch (e) {
-      emit(RecipesError(message: e.toString()));
-    }
-  }
+  // Future<void> getFavoriteRecipes() async {
+  //   emit(RecipesLoading());
+  //   try {
+  //     final recipes = await _recipeRepository.getFavoriteRecipes();
+  //     emit(RecipesFavoritesLoaded(recipes: recipes));
+  //   } catch (e) {
+  //     emit(RecipesError(message: e.toString()));
+  //   }
+  // }
 }

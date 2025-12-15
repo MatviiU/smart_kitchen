@@ -21,7 +21,6 @@ abstract class RecipeApi {
   @GET('/findByIngredients')
   Future<List<RecipeByIngredientDto>> findByIngredients(
     @Query('ingredients') String ingredients, {
-    @Query('number') int number = 10,
     @Query('ranking') int ranking = 1,
   });
 

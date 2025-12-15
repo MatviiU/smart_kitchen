@@ -48,7 +48,10 @@ class RecipeCard extends StatelessWidget {
                       ),
                     ),
                     // TODO: Tap -> toggle favorite
-                    FavoriteIcon(variant: favoriteVariant, color: scheme.primary),
+                    FavoriteIcon(
+                      variant: favoriteVariant,
+                      color: scheme.primary,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 6),

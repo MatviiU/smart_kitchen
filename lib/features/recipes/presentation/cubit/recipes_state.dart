@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:smart_kitchen/domain/entities/recipe_entity.dart';
 import 'package:smart_kitchen/domain/entities/recipe_preview_entity.dart';
 
 sealed class RecipesState extends Equatable {
@@ -22,14 +21,14 @@ final class RecipesSearchLoaded extends RecipesState {
   List<Object> get props => [recipes];
 }
 
-final class RecipesFavoritesLoaded extends RecipesState {
-  const RecipesFavoritesLoaded({required this.recipes});
-
-  final List<RecipeEntity> recipes;
-
-  @override
-  List<Object> get props => [recipes];
-}
+// final class RecipesFavoritesLoaded extends RecipesState {
+//   const RecipesFavoritesLoaded({required this.recipes});
+//
+//   final List<RecipeEntity> recipes;
+//
+//   @override
+//   List<Object> get props => [recipes];
+// }
 
 final class RecipesError extends RecipesState {
   const RecipesError({required this.message});

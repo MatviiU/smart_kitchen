@@ -6,6 +6,7 @@ import 'package:smart_kitchen/core/di/get_it/di_setup.dart';
 import 'package:smart_kitchen/core/navigation/app_router.dart';
 import 'package:smart_kitchen/core/theme/app_theme.dart';
 import 'package:smart_kitchen/features/inventory/presentation/cubit/inventory_cubit.dart';
+import 'package:smart_kitchen/features/recipes/presentation/cubit/recipes_cubit.dart';
 import 'package:smart_kitchen/features/scanning/presentation/cubit/scanner_cubit.dart';
 
 void main() async {
@@ -28,6 +29,10 @@ class MyApp extends StatelessWidget {
               serviceLocator<InventoryCubit>()..fetchInventory(),
         ),
         BlocProvider(create: (context) => serviceLocator<ScannerCubit>()),
+        BlocProvider(
+          create: (context) =>
+              serviceLocator<RecipesCubit>()..findFromMyInventory(),
+        ),
       ],
       child: MaterialApp.router(
         routerConfig: router,
