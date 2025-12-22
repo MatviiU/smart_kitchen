@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:retrofit/error_logger.dart';
-import 'package:retrofit/http.dart';
+import 'package:retrofit/retrofit.dart';
 import 'package:smart_kitchen/features/inventory/data/data_sources/remote/models/product_response_dto.dart';
 
 part 'open_food_facts_api.g.dart';

@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:retrofit/error_logger.dart';
-import 'package:retrofit/http.dart';
+import 'package:retrofit/retrofit.dart';
 import 'package:smart_kitchen/features/recipes/data/data_sources/remote/models/recipe_details/recipe_detail_dto.dart';
 import 'package:smart_kitchen/features/recipes/data/data_sources/remote/models/search_by_ingredients/recipe_by_ingredient_dto.dart';
 import 'package:smart_kitchen/features/recipes/data/data_sources/remote/models/search_by_name/recipe_search_response_dto.dart';

@@ -27,6 +27,8 @@ class Products extends Table {
 
   RealColumn get carbs => real().nullable()();
 
+  DateTimeColumn get expirationDate => dateTime().nullable()();
+
   @override
   Set<Column> get primaryKey => {barcode};
 }
