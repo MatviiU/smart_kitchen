@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart';
+import 'package:drift/internal/versioned_schema.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:smart_kitchen/core/database/db_migration.dart';
 import 'package:smart_kitchen/features/inventory/data/data_sources/local/tables.dart';
 import 'package:smart_kitchen/features/recipes/data/data_sources/local/tables.dart';
 
@@ -13,19 +15,44 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 4;
 
+  /// We will handle migration process here
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
-      onCreate: (Migrator migrator) async {
-        await migrator.createAll();
+      onCreate: (m) async {
+        /// Create all tables
+        await m.createAll();
       },
-      onUpgrade: (Migrator migrator, int from, int to) async {
-        if (from == 1) {
-          await migrator.createTable(favoriteRecipes);
-        }
-        if (from <= 2) {
-          await migrator.addColumn(products, products.isFavorite);
-        }
+      onUpgrade: (m, from, to) async {
+        /// Run migration steps without foreign keys and re-enable them later
+        /// (https://drift.simonbinder.eu/docs/advanced-features/migrations/#tips)
+        await customStatement('PRAGMA foreign_keys = OFF');
+
+        /// [migrationSteps] method coming from db_migration.dart file
+        /// which drift generated
+        await transaction(
+          () => VersionedSchema.runMigrationSteps(
+            migrator: m,
+            from: from,
+            to: to,
+
+            /// From version 3 to 4
+            steps: migrationSteps(
+              from3To4: (Migrator m, Schema4 schema) async {
+                /// Write version 4 changes here
+                /// Add new columns to [Products]
+                await m.addColumn(
+                  schema.products,
+                  schema.products.expirationDate,
+                );
+              },
+            ),
+          ),
+        );
+      },
+      beforeOpen: (details) async {
+        /// Enable foreign_keys
+        await customStatement('PRAGMA foreign_keys = ON');
       },
     );
   }
