@@ -15,7 +15,7 @@ class InventoryCubit extends Cubit<InventoryState> {
     emit(InventoryLoading());
     try {
       final inventory = await _inventoryRepository.getAllProducts();
-      emit(InventoryLoaded(products: inventory));
+      emit(InventoryLoaded(products: inventory, allProducts: inventory));
     } catch (e) {
       emit(InventoryError(message: e.toString()));
     }
@@ -40,7 +40,12 @@ class InventoryCubit extends Cubit<InventoryState> {
       );
 
       if (productExists) {
-        emit(InventoryLoaded(products: currentProducts));
+        emit(
+          InventoryLoaded(
+            products: currentProducts,
+            allProducts: currentProducts,
+          ),
+        );
         return;
       }
       await _saveProductToDb(
@@ -62,7 +67,12 @@ class InventoryCubit extends Cubit<InventoryState> {
 
     final exists = currentProducts.any((p) => p.barcode == product.barcode);
     if (exists) {
-      emit(InventoryLoaded(products: currentProducts));
+      emit(
+        InventoryLoaded(
+          products: currentProducts,
+          allProducts: currentProducts,
+        ),
+      );
       return;
     }
 
@@ -70,7 +80,7 @@ class InventoryCubit extends Cubit<InventoryState> {
       emit(InventoryLoading());
       await _inventoryRepository.saveProduct(product: product);
       final updated = [...currentProducts, product];
-      emit(InventoryLoaded(products: updated));
+      emit(InventoryLoaded(products: updated, allProducts: updated));
     } catch (e) {
       emit(const InventoryError(message: 'Failed to save product'));
       await fetchInventory();
@@ -82,7 +92,7 @@ class InventoryCubit extends Cubit<InventoryState> {
     required List<ProductEntity> products,
   }) async {
     await _inventoryRepository.saveProduct(product: product);
-    emit(InventoryLoaded(products: products));
+    emit(InventoryLoaded(products: products, allProducts: products));
   }
 
   Future<void> removeProduct({required String barcode}) async {
@@ -91,24 +101,28 @@ class InventoryCubit extends Cubit<InventoryState> {
     final updatedList = currentList
         .where((product) => product.barcode != barcode)
         .toList();
-    emit(InventoryLoaded(products: updatedList));
+    emit(InventoryLoaded(products: updatedList, allProducts: currentList));
     try {
       await _inventoryRepository.deleteProductByBarcode(barcode: barcode);
       await fetchInventory();
     } catch (e) {
       emit(InventoryError(message: e.toString()));
-      emit(InventoryLoaded(products: currentList));
+      emit(InventoryLoaded(products: currentList, allProducts: currentList));
     }
   }
 
   Future<void> searchProducts({required String query}) async {
     final currentState = state;
     if (currentState is InventoryLoaded) {
+      if (query.isEmpty) {
+        emit(currentState.copyWith(products: currentState.allProducts));
+        return;
+      }
       final filteredProducts = _filterProducts(
-        products: currentState.products,
+        products: currentState.allProducts,
         query: query,
       );
-      emit(InventoryLoaded(products: filteredProducts));
+      emit(currentState.copyWith(products: filteredProducts));
     }
   }
 
@@ -136,7 +150,20 @@ class InventoryCubit extends Cubit<InventoryState> {
       }
       return product;
     }).toList();
-    emit(currentState.copyWith(products: updatedProducts));
+
+    final updatedAllProducts = currentState.allProducts.map((product) {
+      if (product.barcode == barcode) {
+        return product.copyWith(isFavorite: !product.isFavorite);
+      }
+      return product;
+    }).toList();
+
+    emit(
+      currentState.copyWith(
+        products: updatedProducts,
+        allProducts: updatedAllProducts,
+      ),
+    );
   }
 
   void setFilter({required InventoryFilter filter}) {
@@ -157,6 +184,7 @@ class InventoryCubit extends Cubit<InventoryState> {
     //       .where((note) => note.tags.contains(tag))
     //       .toList();
     // }
+    if (query.isEmpty) return products;
 
     if (query.isNotEmpty) {
       final lowerCaseQuery = query.toLowerCase();

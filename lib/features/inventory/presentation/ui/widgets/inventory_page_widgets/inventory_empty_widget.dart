@@ -43,7 +43,7 @@ class InventoryEmptyWidget extends StatelessWidget {
             children: [
               FilledButton.tonalIcon(
                 onPressed: () {
-                  //TODO: start scanning
+                  context.pushNamed(RouteNames.scanningPage);
                 },
                 style: FilledButton.styleFrom(
                   backgroundColor: context.colors.secondaryContainer,
@@ -94,7 +94,7 @@ class InventoryEmptyWidget extends StatelessWidget {
           const SizedBox(height: 12),
           TextButton(
             onPressed: () {
-              // TODO: link to help screen or show dialog
+              // TODO(dev): Link to help screen or show dialog.
             },
             child: Text(
               'Learn how to scan →',

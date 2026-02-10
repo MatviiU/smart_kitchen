@@ -6,6 +6,7 @@ import 'package:smart_kitchen/features/inventory/presentation/ui/widgets/add_pro
 
 class ProductAddManuallyFormBody extends StatelessWidget {
   const ProductAddManuallyFormBody({
+    required this.expirationDateController,
     required this.caloriesController,
     required this.carbsController,
     required this.fatController,
@@ -19,6 +20,9 @@ class ProductAddManuallyFormBody extends StatelessWidget {
     required this.barcodeController,
     required this.unit,
     required this.onChanged,
+    required this.imagePath,
+    required this.onTakePhoto,
+    required this.onUploadFromDevice,
     super.key,
   });
 
@@ -33,17 +37,24 @@ class ProductAddManuallyFormBody extends StatelessWidget {
   final TextEditingController fatController;
   final TextEditingController carbsController;
   final TextEditingController proteinController;
+  final TextEditingController expirationDateController;
   final String unit;
   final ValueChanged<String?> onChanged;
+  final String? imagePath;
+  final VoidCallback onTakePhoto;
+  final VoidCallback onUploadFromDevice;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const ProductImage(),
+        ProductImage(imagePath: imagePath),
         const SizedBox(height: 16),
-        const ImagePickerRow(),
+        ImagePickerRow(
+          onTakePhoto: onTakePhoto,
+          onUploadFromDevice: onUploadFromDevice,
+        ),
         const SizedBox(height: 24),
         ProductRequiredFields(
           nameController: nameController,
@@ -74,6 +85,7 @@ class ProductAddManuallyFormBody extends StatelessWidget {
           fatController: fatController,
           carbsController: carbsController,
           proteinController: proteinController,
+          expirationDateController: expirationDateController,
         ),
         const SizedBox(height: 90),
       ],

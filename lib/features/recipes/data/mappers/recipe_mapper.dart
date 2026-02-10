@@ -26,6 +26,7 @@ class RecipeMapper {
             title: previewDto.title ?? 'Unknown Title',
             imageUrl: previewDto.image ?? '',
             missedIngredientCount: null,
+            isFavorite: false,
           ),
         )
         .toList();
@@ -42,9 +43,20 @@ class RecipeMapper {
             title: recipeDto.title ?? 'Unknown Title',
             imageUrl: recipeDto.image ?? '',
             missedIngredientCount: recipeDto.missedIngredientCount ?? 0,
+            isFavorite: false,
           ),
         )
         .toList();
+  }
+
+  static RecipePreviewEntity mapEntityToPreview(RecipeEntity entity) {
+    return RecipePreviewEntity(
+      id: entity.id,
+      title: entity.title,
+      imageUrl: entity.imageUrl,
+      missedIngredientCount: null,
+      isFavorite: true,
+    );
   }
 
   static RecipeEntity mapRemoteDetailToEntity(RecipeDetailDto dto) {

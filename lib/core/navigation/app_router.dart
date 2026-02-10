@@ -7,7 +7,11 @@ import 'package:smart_kitchen/features/inventory/presentation/ui/screens/add_pro
 import 'package:smart_kitchen/features/inventory/presentation/ui/screens/inventory_page.dart';
 import 'package:smart_kitchen/features/product_details/presentation/cubit/product_details_cubit.dart';
 import 'package:smart_kitchen/features/product_details/presentation/ui/screens/product_details_screen.dart';
+import 'package:smart_kitchen/features/recipes/data/repositories/recipe_repository.dart';
+import 'package:smart_kitchen/features/recipes/presentation/cubit/recipe_detail_cubit.dart';
+import 'package:smart_kitchen/features/recipes/presentation/ui/screens/recipe_details_screen.dart';
 import 'package:smart_kitchen/features/recipes/presentation/ui/screens/recipes_page.dart';
+import 'package:smart_kitchen/features/scanning/presentation/ui/screens/scanning_page.dart';
 
 final router = GoRouter(
   initialLocation: '/inventory-page',
@@ -21,12 +25,17 @@ final router = GoRouter(
           path: 'add-product-manually-page',
           name: RouteNames.addProductManuallyPage,
           builder: (context, state) {
-            final productToEdit = state.extra as ProductEntity?;
+            final extra = state.extra;
+            final productToEdit = extra is ProductEntity ? extra : null;
+            final prefilledBarcode = extra is String
+                ? extra
+                : productToEdit?.barcode;
             return AddProductManuallyScreen(
               prefilledName: productToEdit?.name,
-              prefilledBarcode: productToEdit?.barcode,
+              prefilledBarcode: prefilledBarcode,
               prefilledBrand: productToEdit?.brand,
               prefilledQuantity: productToEdit?.quantity,
+              prefilledImageUrl: productToEdit?.imageUrl,
               prefilledCategories: productToEdit?.categories,
               prefilledIngredients: productToEdit?.ingredients,
               prefilledAllergens: productToEdit?.allergens,
@@ -36,6 +45,11 @@ final router = GoRouter(
               prefilledProtein: productToEdit?.nutrition.protein,
             );
           },
+        ),
+        GoRoute(
+          path: 'scanning-page',
+          name: RouteNames.scanningPage,
+          builder: (context, state) => const ScanningPage(),
         ),
         GoRoute(
           path: 'product-details-page/:barcode',
@@ -56,6 +70,23 @@ final router = GoRouter(
       path: '/recipes-page',
       name: RouteNames.recipesPage,
       builder: (context, state) => const RecipesPage(),
+      routes: [
+        GoRoute(
+          path: 'recipe-details-page/:recipeId',
+          name: RouteNames.recipeDetailsPage,
+          builder: (context, state) {
+            final recipeIdString = state.pathParameters['recipeId']!;
+            final recipeId = int.parse(recipeIdString);
+            return BlocProvider(
+              create: (context) => RecipeDetailCubit(
+                recipeRepository: serviceLocator<RecipeRepository>(),
+                recipeId: recipeId,
+              )..loadRecipeDetails(),
+              child: const RecipeDetailsScreen(),
+            );
+          },
+        ),
+      ],
     ),
   ],
 );

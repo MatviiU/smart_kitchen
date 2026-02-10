@@ -14,30 +14,28 @@ class FilterChipsItem extends StatelessWidget {
   final InventoryFilter filter;
   final String label;
   final InventoryFilter filterOption;
-  final GestureTapCallback? onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Chip(
-          label: Text(
-            label,
-            style: TextStyle(
-              color: _getChipLabelColor(
-                context: context,
-                filterOption: filterOption,
-                selectedFilter: filter,
-              ),
+      child: ActionChip(
+        onPressed: onTap,
+        label: Text(
+          label,
+          style: TextStyle(
+            color: _getChipLabelColor(
+              context: context,
+              filterOption: filterOption,
+              selectedFilter: filter,
             ),
           ),
-          backgroundColor: _getChipBackgroundColor(
-            context: context,
-            filterOption: filterOption,
-            selectedFilter: filter,
-          ),
+        ),
+        backgroundColor: _getChipBackgroundColor(
+          context: context,
+          filterOption: filterOption,
+          selectedFilter: filter,
         ),
       ),
     );

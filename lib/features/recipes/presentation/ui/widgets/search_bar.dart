@@ -21,7 +21,7 @@ class CustomSearchBar extends StatelessWidget {
               barLeading: const Icon(Icons.search),
               viewElevation: 0,
               searchController: searchController,
-              onChanged: (query){
+              onChanged: (query) {
                 context.read<RecipesCubit>().searchByName(query: query);
               },
               suggestionsBuilder: (context, controller) {
@@ -32,10 +32,14 @@ class CustomSearchBar extends StatelessWidget {
                   BlocBuilder<RecipesCubit, RecipesState>(
                     builder: (context, state) {
                       return switch (state) {
-                        RecipesInitial() || RecipesLoading() => const Center(
+                        RecipesInitial() => const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Text('Почніть вводити назву рецепта'),
+                        ),
+                        RecipesLoading() => const Center(
                           child: CircularProgressIndicator(),
                         ),
-                        RecipesSearchLoaded(recipes: final results) =>
+                        RecipesLoaded(recipes: final results) =>
                           results.isEmpty
                               ? Padding(
                                   padding: const .all(16),

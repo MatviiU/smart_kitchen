@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:smart_kitchen/features/recipes/presentation/ui/screens/recipes_page.dart';
+
+enum FavoriteIconVariant { outline, filledPrimary }
 
 class FavoriteIcon extends StatelessWidget {
   const FavoriteIcon({required this.variant, required this.color, super.key});

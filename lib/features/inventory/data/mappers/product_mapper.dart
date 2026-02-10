@@ -54,6 +54,7 @@ class ProductMapper {
         fat: dbProduct.fat ?? 0.0,
         carbs: dbProduct.carbs ?? 0.0,
       ),
+      expirationDate: dbProduct.expirationDate,
     );
   }
 
@@ -72,6 +73,7 @@ class ProductMapper {
       protein: Value(entity.nutrition.protein),
       fat: Value(entity.nutrition.fat),
       carbs: Value(entity.nutrition.carbs),
+      expirationDate: Value(entity.expirationDate),
     );
   }
 }

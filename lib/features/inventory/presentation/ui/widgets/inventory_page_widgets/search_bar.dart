@@ -24,7 +24,7 @@ class CustomSearchBar extends StatelessWidget {
                   hintText: 'Search products or barcode',
                 ),
                 onChanged: (query) {
-                  context.watch<InventoryCubit>().searchProducts(query: query);
+                  context.read<InventoryCubit>().searchProducts(query: query);
                 },
               ),
             ),

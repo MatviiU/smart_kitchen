@@ -9,6 +9,8 @@ class CustomTextFormField extends StatelessWidget {
     this.maxLines,
     this.keyboardType,
     this.validator,
+    this.onTap,
+    this.readOnly,
   });
 
   final TextEditingController controller;
@@ -17,6 +19,8 @@ class CustomTextFormField extends StatelessWidget {
   final int? maxLines;
   final TextInputType? keyboardType;
   final FormFieldValidator<String?>? validator;
+  final GestureTapCallback? onTap;
+  final bool? readOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +31,11 @@ class CustomTextFormField extends StatelessWidget {
         hintText: hintText,
         border: const OutlineInputBorder(),
       ),
+      onTap: onTap,
       maxLines: maxLines,
       keyboardType: keyboardType,
       validator: validator,
+      readOnly: readOnly ?? false,
     );
   }
 }

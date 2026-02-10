@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:smart_kitchen/domain/entities/nutrition_entity.dart';
 import 'package:smart_kitchen/domain/entities/product_entity.dart';
 import 'package:smart_kitchen/features/inventory/presentation/cubit/inventory_cubit.dart';
@@ -20,6 +22,8 @@ class AddProductManuallyScreen extends StatefulWidget {
     this.prefilledName,
     this.prefilledProtein,
     this.prefilledQuantity,
+    this.prefilledExpirationDate,
+    this.prefilledImageUrl,
   });
 
   final String? prefilledName;
@@ -33,6 +37,8 @@ class AddProductManuallyScreen extends StatefulWidget {
   final double? prefilledFat;
   final double? prefilledCarbs;
   final double? prefilledProtein;
+  final String? prefilledExpirationDate;
+  final String? prefilledImageUrl;
 
   @override
   State<AddProductManuallyScreen> createState() =>
@@ -41,7 +47,9 @@ class AddProductManuallyScreen extends StatefulWidget {
 
 class _AddProductManuallyScreenState extends State<AddProductManuallyScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _imagePicker = ImagePicker();
   var _unit = 'pcs';
+  String? _imagePath;
 
   late final TextEditingController _nameController;
   late final TextEditingController _brandController;
@@ -54,6 +62,7 @@ class _AddProductManuallyScreenState extends State<AddProductManuallyScreen> {
   late final TextEditingController _fatController;
   late final TextEditingController _carbsController;
   late final TextEditingController _proteinController;
+  late final TextEditingController _expirationDateController;
 
   @override
   void initState() {
@@ -87,6 +96,10 @@ class _AddProductManuallyScreenState extends State<AddProductManuallyScreen> {
     _proteinController = TextEditingController(
       text: widget.prefilledProtein?.toString() ?? '',
     );
+    _expirationDateController = TextEditingController(
+      text: widget.prefilledExpirationDate ?? '',
+    );
+    _imagePath = widget.prefilledImageUrl;
   }
 
   @override
@@ -102,6 +115,7 @@ class _AddProductManuallyScreenState extends State<AddProductManuallyScreen> {
     _fatController.dispose();
     _carbsController.dispose();
     _proteinController.dispose();
+    _expirationDateController.dispose();
     super.dispose();
   }
 
@@ -112,6 +126,7 @@ class _AddProductManuallyScreenState extends State<AddProductManuallyScreen> {
         name: _nameController.text.trim(),
         brand: _brandController.text.trim(),
         quantity: _quantityController.text.trim(),
+        imageUrl: _imagePath ?? '',
         categories: _categoriesController.text.trim(),
         ingredients: _ingredientsController.text.trim(),
         allergens: _allergensController.text.trim(),
@@ -121,6 +136,9 @@ class _AddProductManuallyScreenState extends State<AddProductManuallyScreen> {
           fat: double.tryParse(_fatController.text.trim()) ?? 0,
           carbs: double.tryParse(_carbsController.text.trim()) ?? 0,
         ),
+        expirationDate: DateFormat(
+          'dd-MM-yyyy',
+        ).tryParse(_expirationDateController.text.trim()),
       );
 
       ScaffoldMessenger.of(
@@ -128,6 +146,24 @@ class _AddProductManuallyScreenState extends State<AddProductManuallyScreen> {
       ).showSnackBar(const SnackBar(content: Text('Product saved')));
       context.read<InventoryCubit>().addProductManually(product: newProduct);
       Navigator.pop(context);
+    }
+  }
+
+  Future<void> _pickImage({required ImageSource source}) async {
+    try {
+      final image = await _imagePicker.pickImage(
+        source: source,
+        imageQuality: 85,
+      );
+      if (image == null || !mounted) {
+        return;
+      }
+      setState(() => _imagePath = image.path);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to pick image: $e')));
     }
   }
 
@@ -158,6 +194,10 @@ class _AddProductManuallyScreenState extends State<AddProductManuallyScreen> {
               proteinController: _proteinController,
               unit: _unit,
               onChanged: (unit) => setState(() => _unit = unit ?? 'pcs'),
+              expirationDateController: _expirationDateController,
+              imagePath: _imagePath,
+              onTakePhoto: () => _pickImage(source: ImageSource.camera),
+              onUploadFromDevice: () => _pickImage(source: ImageSource.gallery),
             ),
           ),
         ),

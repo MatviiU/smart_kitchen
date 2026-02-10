@@ -35,7 +35,7 @@ class ProductCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              const ExpireProgressIndicator(),
+              ExpireProgressIndicator(expirationDate: product.expirationDate),
             ],
           ),
         ),

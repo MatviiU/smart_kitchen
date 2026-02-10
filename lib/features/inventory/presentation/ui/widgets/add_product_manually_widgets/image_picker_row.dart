@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
 class ImagePickerRow extends StatelessWidget {
-  const ImagePickerRow({super.key});
+  const ImagePickerRow({
+    required this.onTakePhoto,
+    required this.onUploadFromDevice,
+    super.key,
+  });
+
+  final VoidCallback onTakePhoto;
+  final VoidCallback onUploadFromDevice;
 
   @override
   Widget build(BuildContext context) {
@@ -9,18 +16,14 @@ class ImagePickerRow extends StatelessWidget {
       children: [
         Expanded(
           child: OutlinedButton(
-            onPressed: () {
-              // TODO: open camera
-            },
+            onPressed: onTakePhoto,
             child: const Text('Take photo'),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: OutlinedButton(
-            onPressed: () {
-              // TODO: pick from device
-            },
+            onPressed: onUploadFromDevice,
             child: const Text('Upload from device'),
           ),
         ),

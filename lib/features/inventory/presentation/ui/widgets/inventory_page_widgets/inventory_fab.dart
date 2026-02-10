@@ -45,7 +45,7 @@ class InventoryFab extends StatelessWidget {
             color: context.colors.onSurface,
           ),
           onTap: () {
-            // відкриття сканера штрихкодів
+            context.pushNamed(RouteNames.scanningPage);
           },
         ),
       ],

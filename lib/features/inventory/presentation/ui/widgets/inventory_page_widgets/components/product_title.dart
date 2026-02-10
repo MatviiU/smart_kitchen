@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:smart_kitchen/domain/entities/product_entity.dart';
 
 class ProductTitle extends StatelessWidget {
@@ -10,21 +11,17 @@ class ProductTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             product.name,
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 4),
           Text(
-            '${product.quantity} - ${product.brand}',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall,
+            '${product.quantity} - ${product.brand} - '
+            '${DateFormat('dd-MM-yyyy').format(product.expirationDate ?? DateTime.now())}',
+            style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
       ),

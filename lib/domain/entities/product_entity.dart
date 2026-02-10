@@ -13,6 +13,7 @@ class ProductEntity extends Equatable {
     required this.allergens,
     required this.nutrition,
     this.isFavorite = false,
+    this.expirationDate,
   });
 
   factory ProductEntity.fromForm({
@@ -25,6 +26,7 @@ class ProductEntity extends Equatable {
     String ingredients = '',
     String allergens = '',
     NutritionEntity? nutrition,
+    DateTime? expirationDate,
   }) {
     return ProductEntity(
       barcode: barcode,
@@ -36,32 +38,7 @@ class ProductEntity extends Equatable {
       ingredients: ingredients,
       allergens: allergens,
       nutrition: nutrition ?? NutritionEntity.empty(),
-    );
-  }
-
-  ProductEntity copyWith({
-    String? barcode,
-    String? name,
-    String? brand,
-    String? imageUrl,
-    String? quantity,
-    String? categories,
-    String? ingredients,
-    String? allergens,
-    bool? isFavorite,
-    NutritionEntity? nutrition,
-  }) {
-    return ProductEntity(
-      barcode: barcode ?? this.barcode,
-      name: name ?? this.name,
-      brand: brand ?? this.brand,
-      imageUrl: imageUrl ?? this.imageUrl,
-      quantity: quantity ?? this.quantity,
-      categories: categories ?? this.categories,
-      ingredients: ingredients ?? this.ingredients,
-      allergens: allergens ?? this.allergens,
-      isFavorite: isFavorite ?? this.isFavorite,
-      nutrition: nutrition ?? this.nutrition,
+      expirationDate: expirationDate,
     );
   }
 
@@ -75,6 +52,35 @@ class ProductEntity extends Equatable {
   final String allergens;
   final bool isFavorite;
   final NutritionEntity nutrition;
+  final DateTime? expirationDate;
+
+  ProductEntity copyWith({
+    String? barcode,
+    String? name,
+    String? brand,
+    String? imageUrl,
+    String? quantity,
+    String? categories,
+    String? ingredients,
+    String? allergens,
+    bool? isFavorite,
+    NutritionEntity? nutrition,
+    DateTime? expirationDate,
+  }) {
+    return ProductEntity(
+      barcode: barcode ?? this.barcode,
+      name: name ?? this.name,
+      brand: brand ?? this.brand,
+      imageUrl: imageUrl ?? this.imageUrl,
+      quantity: quantity ?? this.quantity,
+      categories: categories ?? this.categories,
+      ingredients: ingredients ?? this.ingredients,
+      allergens: allergens ?? this.allergens,
+      isFavorite: isFavorite ?? this.isFavorite,
+      nutrition: nutrition ?? this.nutrition,
+      expirationDate: expirationDate ?? this.expirationDate,
+    );
+  }
 
   @override
   List<Object?> get props => [
@@ -88,5 +94,6 @@ class ProductEntity extends Equatable {
     allergens,
     isFavorite,
     nutrition,
+    expirationDate,
   ];
 }

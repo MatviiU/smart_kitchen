@@ -17,24 +17,28 @@ final class InventoryLoading extends InventoryState {}
 final class InventoryLoaded extends InventoryState {
   const InventoryLoaded({
     required this.products,
+    required this.allProducts,
     this.filter = InventoryFilter.all,
   });
 
   final List<ProductEntity> products;
+  final List<ProductEntity> allProducts;
   final InventoryFilter filter;
 
   InventoryLoaded copyWith({
     List<ProductEntity>? products,
+    List<ProductEntity>? allProducts,
     InventoryFilter? filter,
   }) {
     return InventoryLoaded(
       products: products ?? this.products,
+      allProducts: allProducts ?? this.allProducts,
       filter: filter ?? this.filter,
     );
   }
 
   @override
-  List<Object> get props => [products, filter];
+  List<Object> get props => [products, allProducts, filter];
 }
 
 final class InventoryProductNotFound extends InventoryState {

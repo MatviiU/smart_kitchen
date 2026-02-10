@@ -33,7 +33,10 @@ class RecipeRepositoryImpl implements RecipeRepository {
       final dtoList = await _remoteDataSource.findByIngredients(
         ingredients: ingredientsQuery,
       );
-      return RecipeMapper.mapRemoteByIngredientsToPreviewList(dtoList);
+      final previews = RecipeMapper.mapRemoteByIngredientsToPreviewList(
+        dtoList,
+      );
+      return _enrichWithFavoriteStatus(previews);
     } catch (e) {
       rethrow;
     }
@@ -74,7 +77,10 @@ class RecipeRepositoryImpl implements RecipeRepository {
       final searchResultDto = await _remoteDataSource.searchRecipes(
         query: query,
       );
-      return RecipeMapper.mapRemoteSearchToPreviewList(searchResultDto);
+      final previews = RecipeMapper.mapRemoteSearchToPreviewList(
+        searchResultDto,
+      );
+      return _enrichWithFavoriteStatus(previews);
     } catch (e) {
       rethrow;
     }
@@ -91,5 +97,23 @@ class RecipeRepositoryImpl implements RecipeRepository {
       final dbCompanion = RecipeMapper.mapEntityToDbCompanion(recipe);
       await _localDataSource.saveFavoriteRecipeToDb(recipe: dbCompanion);
     }
+  }
+
+  Future<List<RecipePreviewEntity>> _enrichWithFavoriteStatus(
+    List<RecipePreviewEntity> previews,
+  ) async {
+    if (previews.isEmpty) {
+      return previews;
+    }
+
+    final favorites = await _localDataSource.getFavoriteRecipesFromDb();
+    final favoriteIds = favorites.map((recipe) => recipe.id).toSet();
+
+    return previews
+        .map(
+          (recipe) =>
+              recipe.copyWith(isFavorite: favoriteIds.contains(recipe.id)),
+        )
+        .toList();
   }
 }

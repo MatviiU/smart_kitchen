@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:smart_kitchen/core/navigation/route_names.dart';
 import 'package:smart_kitchen/features/inventory/presentation/cubit/inventory_cubit.dart';
 import 'package:smart_kitchen/features/inventory/presentation/cubit/inventory_state.dart';
 import 'package:smart_kitchen/features/scanning/presentation/cubit/scanner_cubit.dart';
@@ -51,6 +53,13 @@ class _ScanningPageState extends State<ScanningPage> {
                 SnackBar(
                   content: Text('Failed to add product: ${state.message}'),
                 ),
+              );
+            }
+            if (state is InventoryProductNotFound) {
+              if (!mounted) return;
+              context.pushNamed(
+                RouteNames.addProductManuallyPage,
+                extra: state.barcode,
               );
             }
           },
