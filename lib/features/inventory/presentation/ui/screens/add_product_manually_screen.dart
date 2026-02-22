@@ -11,6 +11,7 @@ import 'package:smart_kitchen/features/inventory/presentation/ui/widgets/add_pro
 class AddProductManuallyScreen extends StatefulWidget {
   const AddProductManuallyScreen({
     super.key,
+    this.isEditing = false,
     this.prefilledBarcode,
     this.prefilledAllergens,
     this.prefilledBrand,
@@ -26,6 +27,7 @@ class AddProductManuallyScreen extends StatefulWidget {
     this.prefilledImageUrl,
   });
 
+  final bool isEditing;
   final String? prefilledName;
   final String? prefilledBarcode;
   final String? prefilledBrand;
@@ -144,7 +146,10 @@ class _AddProductManuallyScreenState extends State<AddProductManuallyScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Product saved')));
-      context.read<InventoryCubit>().addProductManually(product: newProduct);
+      context.read<InventoryCubit>().addProductManually(
+        product: newProduct,
+        replaceIfExists: widget.isEditing,
+      );
       Navigator.pop(context);
     }
   }

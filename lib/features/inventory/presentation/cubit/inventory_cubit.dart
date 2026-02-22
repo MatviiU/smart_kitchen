@@ -22,6 +22,13 @@ class InventoryCubit extends Cubit<InventoryState> {
   }
 
   Future<void> addProductByBarcode({required String barcode}) async {
+    final previousLoadedState = state is InventoryLoaded
+        ? state as InventoryLoaded
+        : null;
+    final currentProducts = previousLoadedState?.products ?? <ProductEntity>[];
+    final currentAllProducts =
+        previousLoadedState?.allProducts ?? <ProductEntity>[];
+
     emit(InventoryLoading());
     try {
       final newProduct = await _inventoryRepository.getProductByBarcode(
@@ -29,11 +36,15 @@ class InventoryCubit extends Cubit<InventoryState> {
       );
       if (newProduct == null) {
         emit(InventoryProductNotFound(barcode: barcode));
+        emit(
+          InventoryLoaded(
+            products: currentProducts,
+            allProducts: currentAllProducts,
+            filter: previousLoadedState?.filter ?? InventoryFilter.all,
+          ),
+        );
         return;
       }
-      final currentProducts = state is InventoryLoaded
-          ? (state as InventoryLoaded).products
-          : <ProductEntity>[];
 
       final productExists = currentProducts.any(
         (product) => product.barcode == newProduct.barcode,
@@ -43,14 +54,15 @@ class InventoryCubit extends Cubit<InventoryState> {
         emit(
           InventoryLoaded(
             products: currentProducts,
-            allProducts: currentProducts,
+            allProducts: currentAllProducts,
+            filter: previousLoadedState?.filter ?? InventoryFilter.all,
           ),
         );
         return;
       }
       await _saveProductToDb(
         product: newProduct,
-        products: [...currentProducts, newProduct],
+        products: [...currentAllProducts, newProduct],
       );
       final current = await _inventoryRepository.getAllProducts();
       debugPrint('db count: ${current.length}');
@@ -60,17 +72,24 @@ class InventoryCubit extends Cubit<InventoryState> {
     }
   }
 
-  Future<void> addProductManually({required ProductEntity product}) async {
-    final currentProducts = state is InventoryLoaded
-        ? (state as InventoryLoaded).products
-        : <ProductEntity>[];
+  Future<void> addProductManually({
+    required ProductEntity product,
+    bool replaceIfExists = false,
+  }) async {
+    final previousLoadedState = state is InventoryLoaded
+        ? state as InventoryLoaded
+        : null;
+    final currentProducts = previousLoadedState?.products ?? <ProductEntity>[];
+    final currentAllProducts =
+        previousLoadedState?.allProducts ?? <ProductEntity>[];
 
-    final exists = currentProducts.any((p) => p.barcode == product.barcode);
-    if (exists) {
+    final exists = currentAllProducts.any((p) => p.barcode == product.barcode);
+    if (exists && !replaceIfExists) {
       emit(
         InventoryLoaded(
           products: currentProducts,
-          allProducts: currentProducts,
+          allProducts: currentAllProducts,
+          filter: previousLoadedState?.filter ?? InventoryFilter.all,
         ),
       );
       return;
@@ -79,8 +98,32 @@ class InventoryCubit extends Cubit<InventoryState> {
     try {
       emit(InventoryLoading());
       await _inventoryRepository.saveProduct(product: product);
-      final updated = [...currentProducts, product];
-      emit(InventoryLoaded(products: updated, allProducts: updated));
+
+      if (exists) {
+        final updatedProducts = currentProducts
+            .map((p) => p.barcode == product.barcode ? product : p)
+            .toList();
+        final updatedAllProducts = currentAllProducts
+            .map((p) => p.barcode == product.barcode ? product : p)
+            .toList();
+        emit(
+          InventoryLoaded(
+            products: updatedProducts,
+            allProducts: updatedAllProducts,
+            filter: previousLoadedState?.filter ?? InventoryFilter.all,
+          ),
+        );
+        return;
+      }
+
+      final updated = [...currentAllProducts, product];
+      emit(
+        InventoryLoaded(
+          products: updated,
+          allProducts: updated,
+          filter: previousLoadedState?.filter ?? InventoryFilter.all,
+        ),
+      );
     } catch (e) {
       emit(const InventoryError(message: 'Failed to save product'));
       await fetchInventory();

@@ -91,18 +91,6 @@ class InventoryEmptyWidget extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: () {
-              // TODO(dev): Link to help screen or show dialog.
-            },
-            child: Text(
-              'Learn how to scan →',
-              style: context.textTheme.labelLarge?.copyWith(
-                color: context.colors.primary,
-              ),
-            ),
-          ),
         ],
       ),
     );

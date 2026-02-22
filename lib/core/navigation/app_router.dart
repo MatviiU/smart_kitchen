@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:smart_kitchen/core/di/get_it/di_container.dart';
 import 'package:smart_kitchen/core/navigation/route_names.dart';
 import 'package:smart_kitchen/domain/entities/product_entity.dart';
@@ -30,7 +31,14 @@ final router = GoRouter(
             final prefilledBarcode = extra is String
                 ? extra
                 : productToEdit?.barcode;
+            final prefilledExpirationDate =
+                productToEdit?.expirationDate == null
+                ? null
+                : DateFormat(
+                    'dd-MM-yyyy',
+                  ).format(productToEdit!.expirationDate!);
             return AddProductManuallyScreen(
+              isEditing: productToEdit != null,
               prefilledName: productToEdit?.name,
               prefilledBarcode: prefilledBarcode,
               prefilledBrand: productToEdit?.brand,
@@ -43,6 +51,7 @@ final router = GoRouter(
               prefilledFat: productToEdit?.nutrition.fat,
               prefilledCarbs: productToEdit?.nutrition.carbs,
               prefilledProtein: productToEdit?.nutrition.protein,
+              prefilledExpirationDate: prefilledExpirationDate,
             );
           },
         ),

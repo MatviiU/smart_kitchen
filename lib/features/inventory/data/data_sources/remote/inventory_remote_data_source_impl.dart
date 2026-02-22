@@ -25,6 +25,9 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
         throw ProductNotFoundException(barcode: barcode);
       }
     } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        throw ProductNotFoundException(barcode: barcode);
+      }
       throw Exception('Network error: ${e.message}');
     } catch (e) {
       throw Exception('Failed to get product: $e');

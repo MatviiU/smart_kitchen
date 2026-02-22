@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:smart_kitchen/domain/entities/product_entity.dart';
 
@@ -6,20 +8,35 @@ class ProductImage extends StatelessWidget {
 
   final ProductEntity product;
 
-  bool get _hasImage =>
-      product.imageUrl.isNotEmpty && product.imageUrl.trim().startsWith('http');
+  String get _imagePath => product.imageUrl.trim();
+
+  bool get _hasImage => _imagePath.isNotEmpty;
+
+  bool get _isNetworkImage => _imagePath.startsWith('http');
 
   @override
   Widget build(BuildContext context) {
+    final file = File(_imagePath);
+    final hasLocalFile = !_isNetworkImage && file.existsSync();
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: SizedBox(
         width: 64,
         height: 64,
-        child: _hasImage
+        child: !_hasImage
+            ? _placeholder()
+            : _isNetworkImage
             ? Image.network(
-                product.imageUrl,
+                _imagePath,
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => _placeholder(),
+              )
+            : hasLocalFile
+            ? Image.file(
+                file,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => _placeholder(),
               )
             : _placeholder(),
       ),

@@ -39,7 +39,15 @@ class InventoryPage extends StatelessWidget {
       body: BlocConsumer<InventoryCubit, InventoryState>(
         listener: (context, state) {
           if (state is InventoryProductNotFound) {
-            context.pushNamed(RouteNames.addProductManuallyPage);
+            final isCurrentRoute = ModalRoute.of(context)?.isCurrent ?? false;
+            if (!isCurrentRoute) {
+              return;
+            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Product not found. Please add it manually.'),
+              ),
+            );
           }
         },
         builder: (context, state) {
