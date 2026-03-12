@@ -219,14 +219,8 @@ class InventoryCubit extends Cubit<InventoryState> {
   List<ProductEntity> _filterProducts({
     required List<ProductEntity> products,
     required String query,
-    // String? tag,
   }) {
     var filteredProducts = [...products];
-    // if(tag != null){
-    //   filteredProducts = filteredProducts
-    //       .where((note) => note.tags.contains(tag))
-    //       .toList();
-    // }
     if (query.isEmpty) return products;
 
     if (query.isNotEmpty) {

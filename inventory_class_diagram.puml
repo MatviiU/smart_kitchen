@@ -1,0 +1,393 @@
+@startuml inventory_class_diagram
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam classBackgroundColor #DAE8FC
+skinparam classBorderColor #6C8EBF
+skinparam classHeaderBackgroundColor #C5D8F0
+skinparam classFontStyle bold
+skinparam classFontSize 11
+skinparam arrowColor #555555
+skinparam arrowFontSize 9
+skinparam packageBackgroundColor #F5F5F5
+skinparam packageBorderColor #999999
+skinparam packageFontStyle bold
+skinparam nodesep 40
+skinparam ranksep 60
+skinparam linetype ortho
+
+title Inventory Feature — Class Diagram
+
+' ─────────────────────────────────────────────
+' DOMAIN ENTITIES
+' ─────────────────────────────────────────────
+package "Domain" #EDF5E1 {
+  class ProductEntity {
+    + barcode : String
+    + name : String
+    + brand : String?
+    + imageUrl : String?
+    + quantity : String?
+    + categories : List<String>
+    + ingredients : List<String>
+    + allergens : List<String>
+    + isFavorite : bool
+    + nutrition : NutritionEntity?
+    + expirationDate : DateTime?
+    + fromForm() : ProductEntity
+    + copyWith() : ProductEntity
+  }
+
+  class NutritionEntity {
+    + calories : double?
+    + protein : double?
+    + fat : double?
+    + carbs : double?
+  }
+
+  ProductEntity --> NutritionEntity : contains
+}
+
+' ─────────────────────────────────────────────
+' DATA LAYER — Remote
+' ─────────────────────────────────────────────
+package "Data / Remote" #FFF2CC {
+  class ProductResponseDto {
+    + code : String?
+    + product : ProductRemoteDto?
+    + status : int?
+    + statusVerbose : String?
+    + fromJson() : ProductResponseDto
+  }
+
+  class ProductRemoteDto {
+    + allergens : String?
+    + brands : String?
+    + categories : String?
+    + code : String?
+    + imageFrontUrl : String?
+    + ingredientsText : String?
+    + nutriments : NutritionRemoteDTO?
+    + productName : String?
+    + quantity : String?
+    + fromJson() : ProductRemoteDto
+  }
+
+  class NutritionRemoteDTO {
+    + energyKcal100g : double?
+    + proteins100g : double?
+    + fat100g : double?
+    + carbohydrates100g : double?
+    + fromJson() : NutritionRemoteDTO
+  }
+
+  interface InventoryRemoteDataSource {
+    + getProductByBarcodeFromApi(barcode) : Future<ProductRemoteDto>
+  }
+
+  class InventoryRemoteDataSourceImpl {
+    - _openFoodFactsApi : OpenFoodFactsApi
+  }
+
+  ProductResponseDto --> ProductRemoteDto : contains
+  ProductRemoteDto --> NutritionRemoteDTO : contains
+  InventoryRemoteDataSourceImpl ..|> InventoryRemoteDataSource
+  InventoryRemoteDataSourceImpl ..> ProductResponseDto : uses
+}
+
+' ─────────────────────────────────────────────
+' DATA LAYER — Local
+' ─────────────────────────────────────────────
+package "Data / Local" #FFE6CC {
+  class Products {
+    + barcode : TextColumn (PK)
+    + name : TextColumn
+    + brand : TextColumn?
+    + imageUrl : TextColumn?
+    + quantity : TextColumn?
+    + categories : TextColumn?
+    + ingredients : TextColumn?
+    + allergens : TextColumn?
+    + isFavorite : BoolColumn
+    + calories : RealColumn?
+    + protein : RealColumn?
+    + fat : RealColumn?
+    + carbs : RealColumn?
+    + expirationDate : DateTimeColumn?
+  }
+
+  interface InventoryLocalDataSource {
+    + getProductByBarcodeFromDb(barcode) : Future<ProductEntity?>
+    + getAllProductsFromDb() : Future<List<ProductEntity>>
+    + saveProductToDb(product) : Future<void>
+    + deleteProductByBarcodeFromDb(barcode) : Future<void>
+    + toggleProductFavoriteStatus(barcode) : Future<void>
+    + isProductFavorite(barcode) : Future<bool>
+  }
+
+  class InventoryLocalDataSourceImpl {
+    - _database : AppDatabase
+  }
+
+  InventoryLocalDataSourceImpl ..|> InventoryLocalDataSource
+  InventoryLocalDataSourceImpl ..> Products : reads/writes
+}
+
+' ─────────────────────────────────────────────
+' DATA LAYER — Mapper & Repository
+' ─────────────────────────────────────────────
+package "Data / Repository" #F0E6FF {
+  class ProductMapper {
+    + {static} mapRemoteDtoToEntity(dto, isFavorite) : ProductEntity
+    + {static} mapDbDataToEntity(dbProduct) : ProductEntity
+    + {static} mapEntityToDbCompanion(entity) : ProductsCompanion
+    - {static} _mapNutritionDtoToEntity(dto) : NutritionEntity
+  }
+
+  interface InventoryRepository {
+    + getProductByBarcode(barcode) : Future<ProductEntity?>
+    + getAllProducts() : Future<List<ProductEntity>>
+    + saveProduct(product) : Future<void>
+    + deleteProductByBarcode(barcode) : Future<void>
+    + toggleProductFavoriteStatus(barcode) : Future<void>
+  }
+
+  class InventoryRepositoryImpl {
+    - _localDataSource : InventoryLocalDataSource
+    - _remoteDataSource : InventoryRemoteDataSource
+  }
+
+  InventoryRepositoryImpl ..|> InventoryRepository
+  InventoryRepositoryImpl --> InventoryLocalDataSource : uses
+  InventoryRepositoryImpl --> InventoryRemoteDataSource : uses
+  InventoryRepositoryImpl ..> ProductMapper : uses
+  ProductMapper ..> ProductEntity : creates
+  ProductMapper ..> ProductRemoteDto : reads
+  ProductMapper ..> NutritionRemoteDTO : reads
+}
+
+' ─────────────────────────────────────────────
+' EXCEPTIONS
+' ─────────────────────────────────────────────
+package "Exceptions" #FFE0E0 {
+  class ProductNotFoundException {
+    + barcode : String
+    + toString() : String
+  }
+  ProductNotFoundException ..|> Exception
+  InventoryRemoteDataSourceImpl ..> ProductNotFoundException : throws
+}
+
+' ─────────────────────────────────────────────
+' PRESENTATION — State
+' ─────────────────────────────────────────────
+package "Presentation / State" #E8F4FD {
+  enum InventoryFilter {
+    all
+    favorites
+    expiringSoon
+    expired
+  }
+
+  abstract class InventoryState {
+  }
+
+  class InventoryInitial {
+  }
+  class InventoryLoading {
+  }
+  class InventoryLoaded {
+    + products : List<ProductEntity>
+    + allProducts : List<ProductEntity>
+    + filter : InventoryFilter
+    + copyWith() : InventoryLoaded
+  }
+  class InventoryProductNotFound {
+    + barcode : String
+  }
+  class InventoryError {
+    + message : String
+  }
+
+  InventoryState <|-- InventoryInitial
+  InventoryState <|-- InventoryLoading
+  InventoryState <|-- InventoryLoaded
+  InventoryState <|-- InventoryProductNotFound
+  InventoryState <|-- InventoryError
+  InventoryLoaded --> InventoryFilter : uses
+}
+
+' ─────────────────────────────────────────────
+' PRESENTATION — Cubit
+' ─────────────────────────────────────────────
+package "Presentation / Cubit" #D5EAF5 {
+  class InventoryCubit {
+    - _inventoryRepository : InventoryRepository
+    + fetchInventory() : Future<void>
+    + addProductByBarcode(barcode) : Future<void>
+    + addProductManually(product, replaceIfExists) : Future<void>
+    + removeProduct(barcode) : Future<void>
+    + searchProducts(query) : Future<void>
+    + toggleFavoriteByBarcode(barcode) : Future<void>
+    + setFilter(filter) : void
+    - _saveProductToDb(product, products) : Future<void>
+    - _filterProducts(products, query) : List<ProductEntity>
+  }
+
+  InventoryCubit --|> "Cubit<InventoryState>"
+  InventoryCubit --> InventoryRepository : uses
+  InventoryCubit ..> InventoryState : emits
+}
+
+' ─────────────────────────────────────────────
+' PRESENTATION — Screens
+' ─────────────────────────────────────────────
+package "Presentation / Screens" #F0F8E8 {
+  class InventoryPage {
+    <<StatelessWidget>>
+  }
+
+  class AddProductManuallyScreen {
+    <<StatefulWidget>>
+    + isEditing : bool
+    + prefilledName : String?
+    + prefilledBarcode : String?
+    - _onSave() : void
+    - _pickImage(source) : Future<void>
+  }
+
+  InventoryPage --> InventoryCubit : BlocConsumer
+  AddProductManuallyScreen --> InventoryCubit : context.read
+}
+
+' ─────────────────────────────────────────────
+' PRESENTATION — Inventory Widgets
+' ─────────────────────────────────────────────
+package "Presentation / Inventory Widgets" #F5F0FF {
+  class InventoryList {
+    + filter : InventoryFilter
+    + products : List<ProductEntity>
+  }
+
+  class ProductCard {
+    + product : ProductEntity
+  }
+
+  class CustomSearchBar {
+  }
+
+  class FilterChips {
+    + filter : InventoryFilter
+  }
+
+  class FilterChipsItem {
+    + filterOption : InventoryFilter
+    + label : String
+    + filter : InventoryFilter
+    + onTap : VoidCallback?
+  }
+
+  class InventoryFab {
+  }
+
+  class InventoryEmptyWidget {
+  }
+
+  class FavoritesEmptyWidget {
+  }
+
+  class ProductImage {
+    + product : ProductEntity
+  }
+
+  class ProductTitle {
+    + product : ProductEntity
+  }
+
+  class ProductActionButtons {
+    + product : ProductEntity
+  }
+
+  class ExpireProgressIndicator {
+    + expirationDate : DateTime?
+  }
+
+  enum ExpirationStatus {
+    expired
+    critical
+    warning
+    safe
+    + color : Color
+    + fromDate(date) : ExpirationStatus
+    + getProgressValue(date) : double
+  }
+
+  InventoryPage --> InventoryList
+  InventoryPage --> FilterChips
+  InventoryPage --> CustomSearchBar
+  InventoryPage --> InventoryFab
+  InventoryList --> ProductCard
+  ProductCard --> ProductImage
+  ProductCard --> ProductTitle
+  ProductCard --> ProductActionButtons
+  ProductCard --> ExpireProgressIndicator
+  FilterChips --> FilterChipsItem
+  ExpireProgressIndicator --> ExpirationStatus : uses
+  ProductActionButtons --> InventoryCubit : context.read
+}
+
+' ─────────────────────────────────────────────
+' PRESENTATION — Add Manually Widgets
+' ─────────────────────────────────────────────
+package "Presentation / Add Manually Widgets" #FFF0F5 {
+  class ProductAddManuallyFormBody {
+    + imagePath : String?
+  }
+
+  class ProductFormActions {
+    + onSave : VoidCallback
+  }
+
+  class ProductRequiredFields {
+  }
+
+  class ProductOptionalFields {
+  }
+
+  class NutritionFields {
+  }
+
+  class UnitDropdownField {
+  }
+
+  class UnitDropdownButton {
+  }
+
+  class CustomTextFormField {
+    + controller : TextEditingController
+    + labelText : String
+    + hintText : String?
+    + maxLines : int
+    + keyboardType : TextInputType?
+    + validator : FormFieldValidator?
+    + readOnly : bool
+  }
+
+  class ImagePickerRow {
+    + onTakePhoto : VoidCallback
+    + onUploadFromDevice : VoidCallback
+  }
+
+  AddProductManuallyScreen --> ProductAddManuallyFormBody
+  AddProductManuallyScreen --> ProductFormActions
+  ProductAddManuallyFormBody --> ProductRequiredFields
+  ProductAddManuallyFormBody --> ProductOptionalFields
+  ProductAddManuallyFormBody --> ImagePickerRow
+  ProductOptionalFields --> NutritionFields
+  ProductOptionalFields --> CustomTextFormField
+  ProductRequiredFields --> UnitDropdownField
+  ProductRequiredFields --> CustomTextFormField
+  NutritionFields --> CustomTextFormField
+  UnitDropdownField --> UnitDropdownButton
+}
+
+@enduml

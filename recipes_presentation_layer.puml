@@ -1,0 +1,226 @@
+@startuml recipes_presentation_layer
+!theme plain
+scale max 3000 width
+skinparam backgroundColor #FFFFFF
+skinparam classBackgroundColor #DAE8FC
+skinparam classBorderColor #6C8EBF
+skinparam classHeaderBackgroundColor #C5D8F0
+skinparam classFontStyle bold
+skinparam classFontSize 10
+skinparam arrowColor #555555
+skinparam arrowFontSize 8
+skinparam packageBackgroundColor #F5F5F5
+skinparam packageBorderColor #999999
+skinparam packageFontStyle bold
+skinparam packageFontSize 11
+skinparam nodesep 30
+skinparam ranksep 40
+
+title Recipes Feature — Presentation Layer
+
+' ─────────────────────────────────────────────
+' DOMAIN STUBS (reference)
+' ─────────────────────────────────────────────
+package "Domain (ref)" #EDF5E1 {
+  class RecipeEntity {
+  }
+  class RecipePreviewEntity {
+  }
+  interface RecipeRepository {
+  }
+}
+
+' ─────────────────────────────────────────────
+' STATE — Recipes List
+' ─────────────────────────────────────────────
+package "State — Recipes List" #E8F4FD {
+  enum RecipesFilter {
+    fromMyIngredients
+    favorites
+  }
+
+  abstract class RecipesState {
+  }
+  class RecipesInitial {
+  }
+  class RecipesLoading {
+  }
+  class RecipesLoaded {
+    + recipes : List<RecipePreviewEntity>
+    + allRecipes : List<RecipePreviewEntity>
+    + filter : RecipesFilter
+    + copyWith() : RecipesLoaded
+  }
+  class RecipesError {
+    + message : String
+  }
+
+  RecipesState --|> Equatable
+  RecipesInitial --|> RecipesState
+  RecipesLoading --|> RecipesState
+  RecipesLoaded --|> RecipesState
+  RecipesError --|> RecipesState
+  RecipesLoaded --> RecipesFilter
+}
+
+' ─────────────────────────────────────────────
+' CUBIT — Recipes List
+' ─────────────────────────────────────────────
+package "Cubit — Recipes List" #D5EAF5 {
+  class RecipesCubit {
+    - _recipeRepository : RecipeRepository
+    - _cachedFromInventoryRecipes : List<RecipePreviewEntity>
+    + searchByName(query) : Future<void>
+    + findFromMyInventory() : Future<void>
+    + loadFavoriteRecipes() : Future<void>
+    + toggleFavorite(recipeId) : Future<void>
+    + setFilter(filter) : void
+  }
+
+  RecipesCubit --|> "Cubit<RecipesState>"
+  RecipesCubit --> RecipeRepository
+  RecipesCubit ..> RecipesState : emits
+}
+
+' ─────────────────────────────────────────────
+' STATE — Recipe Detail
+' ─────────────────────────────────────────────
+package "State — Recipe Detail" #C8E6F5 {
+  abstract class RecipeDetailState {
+  }
+  class RecipeDetailInitial {
+  }
+  class RecipeDetailLoading {
+  }
+  class RecipeDetailLoaded {
+    + recipe : RecipeEntity
+    + isFavorite : bool
+    + copyWith() : RecipeDetailLoaded
+  }
+  class RecipeDetailError {
+    + message : String
+  }
+
+  RecipeDetailState --|> Equatable
+  RecipeDetailInitial --|> RecipeDetailState
+  RecipeDetailLoading --|> RecipeDetailState
+  RecipeDetailLoaded --|> RecipeDetailState
+  RecipeDetailError --|> RecipeDetailState
+}
+
+' ─────────────────────────────────────────────
+' CUBIT — Recipe Detail
+' ─────────────────────────────────────────────
+package "Cubit — Recipe Detail" #B8DCF0 {
+  class RecipeDetailCubit {
+    - _recipeRepository : RecipeRepository
+    - _recipeId : int
+    - _favoriteSubscription : StreamSubscription<bool>?
+    + loadRecipeDetails() : Future<void>
+    + toggleFavorite() : Future<void>
+    + close() : Future<void>
+  }
+
+  RecipeDetailCubit --|> "Cubit<RecipeDetailState>"
+  RecipeDetailCubit --> RecipeRepository
+  RecipeDetailCubit ..> RecipeDetailState : emits
+}
+
+' ─────────────────────────────────────────────
+' SCREENS
+' ─────────────────────────────────────────────
+package "Screens" #F0F8E8 {
+  class RecipesPage {
+    <<StatefulWidget>>
+    - _searchController : SearchController
+  }
+
+  class RecipeDetailsScreen {
+    <<StatelessWidget>>
+  }
+
+  class _RecipeDetailsBody {
+    + recipe : RecipeEntity
+    + isFavorite : bool
+  }
+
+  class _RecipeImage {
+  }
+
+  class _Section {
+    + title : String
+  }
+
+  class _MetaChip {
+  }
+
+  class _IngredientsList {
+  }
+
+  class _InstructionsList {
+  }
+
+  RecipesPage --> RecipesCubit : BlocConsumer
+  RecipeDetailsScreen --> RecipeDetailCubit : BlocConsumer
+  RecipeDetailsScreen --> _RecipeDetailsBody
+  _RecipeDetailsBody --> _RecipeImage
+  _RecipeDetailsBody --> _Section
+  _RecipeDetailsBody --> _MetaChip
+  _RecipeDetailsBody --> _IngredientsList
+  _RecipeDetailsBody --> _InstructionsList
+}
+
+' ─────────────────────────────────────────────
+' WIDGETS
+' ─────────────────────────────────────────────
+package "Widgets" #F5F0FF {
+  enum FavoriteIconVariant {
+    outline
+    filledPrimary
+  }
+
+  class FavoriteIcon {
+    + variant : FavoriteIconVariant
+    + color : Color
+  }
+
+  class RecipeCard {
+    + title : String
+    + meta : String
+    + imageUrl : String
+    + isFavorite : bool
+    + onFavoriteTap : VoidCallback
+    + onTap : VoidCallback
+  }
+
+  class CustomSearchBar {
+    + searchController : SearchController
+  }
+
+  class FilterSelectorViewOnly {
+    + selectedFilter : RecipesFilter
+    + onChanged : ValueChanged<RecipesFilter>
+  }
+
+  class SectionTitle {
+    + title : String
+  }
+
+  class FavoritesEmptyWidget {
+  }
+
+  class IconHolder {
+    + icon : IconData
+  }
+
+  FavoriteIcon --> FavoriteIconVariant
+  RecipeCard --> FavoriteIcon
+  FilterSelectorViewOnly --> RecipesFilter
+  RecipesPage --> RecipeCard
+  RecipesPage --> CustomSearchBar
+  RecipesPage --> FilterSelectorViewOnly
+  RecipesPage --> SectionTitle
+  RecipesPage --> FavoritesEmptyWidget
+}
+
+@enduml

@@ -1,0 +1,244 @@
+@startuml recipes_data_layer
+!theme plain
+scale max 3000 width
+skinparam backgroundColor #FFFFFF
+skinparam classBackgroundColor #DAE8FC
+skinparam classBorderColor #6C8EBF
+skinparam classHeaderBackgroundColor #C5D8F0
+skinparam classFontStyle bold
+skinparam classFontSize 10
+skinparam arrowColor #555555
+skinparam arrowFontSize 8
+skinparam packageBackgroundColor #F5F5F5
+skinparam packageBorderColor #999999
+skinparam packageFontStyle bold
+skinparam packageFontSize 11
+skinparam nodesep 30
+skinparam ranksep 40
+
+title Recipes Feature — Data Layer
+
+' ─────────────────────────────────────────────
+' DOMAIN ENTITIES
+' ─────────────────────────────────────────────
+package "Domain" #EDF5E1 {
+  class RecipeEntity {
+    + id : int
+    + title : String
+    + image : String?
+    + readyInMinutes : int?
+    + servings : int?
+    + summary : String?
+    + instructions : String?
+    + sourceUrl : String?
+    + extendedIngredients : List<IngredientEntity>
+    + analyzedInstructions : List<String>
+    + isFavorite : bool
+  }
+
+  class RecipePreviewEntity {
+    + id : int
+    + title : String
+    + image : String?
+    + isFavorite : bool
+  }
+
+  class IngredientEntity {
+    + id : int?
+    + name : String?
+    + amount : double?
+    + unit : String?
+    + original : String?
+    + image : String?
+  }
+
+  RecipeEntity --> IngredientEntity : contains
+}
+
+' ─────────────────────────────────────────────
+' REMOTE DTOs — Details
+' ─────────────────────────────────────────────
+package "Remote DTOs — Details" #FFF2CC {
+  class RecipeDetailDto {
+    + id : int?
+    + title : String?
+    + image : String?
+    + readyInMinutes : int?
+    + servings : int?
+    + sourceUrl : String?
+    + summary : String?
+    + instructions : String?
+    + extendedIngredients : List<ExtendedIngredientDto>?
+    + analyzedInstructions : List<AnalyzedInstructionDto>?
+    + fromJson() : RecipeDetailDto
+  }
+
+  class ExtendedIngredientDto {
+    + id : int?
+    + name : String?
+    + amount : double?
+    + unit : String?
+    + original : String?
+    + image : String?
+    + fromJson() : ExtendedIngredientDto
+  }
+
+  class AnalyzedInstructionDto {
+    + name : String?
+    + steps : List<StepDto>?
+    + fromJson() : AnalyzedInstructionDto
+  }
+
+  class StepDto {
+    + number : int?
+    + step : String?
+    + fromJson() : StepDto
+  }
+
+  RecipeDetailDto --> ExtendedIngredientDto
+  RecipeDetailDto --> AnalyzedInstructionDto
+  AnalyzedInstructionDto --> StepDto
+}
+
+' ─────────────────────────────────────────────
+' REMOTE DTOs — Search
+' ─────────────────────────────────────────────
+package "Remote DTOs — Search" #FFE8CC {
+  class RecipeSearchResponseDto {
+    + results : List<RecipePreviewDto>?
+    + offset : int?
+    + number : int?
+    + totalResults : int?
+    + fromJson() : RecipeSearchResponseDto
+  }
+
+  class RecipePreviewDto {
+    + id : int?
+    + title : String?
+    + image : String?
+    + imageType : String?
+    + fromJson() : RecipePreviewDto
+  }
+
+  class RecipeByIngredientDto {
+    + id : int?
+    + title : String?
+    + image : String?
+    + usedIngredientCount : int?
+    + missedIngredientCount : int?
+    + missedIngredients : List<IngredientSimpleDto>?
+    + usedIngredients : List<IngredientSimpleDto>?
+    + unusedIngredients : List<IngredientSimpleDto>?
+    + likes : int?
+    + fromJson() : RecipeByIngredientDto
+  }
+
+  class IngredientSimpleDto {
+    + id : int?
+    + amount : double?
+    + unit : String?
+    + name : String?
+    + original : String?
+    + image : String?
+    + fromJson() : IngredientSimpleDto
+  }
+
+  RecipeSearchResponseDto --> RecipePreviewDto
+  RecipeByIngredientDto --> IngredientSimpleDto
+}
+
+' ─────────────────────────────────────────────
+' REMOTE DATA SOURCE
+' ─────────────────────────────────────────────
+package "Remote Data Source" #FFEEDD {
+  interface RecipeRemoteDataSource {
+    + searchRecipes(query) : Future<RecipeSearchResponseDto>
+    + findByIngredients(ingredients) : Future<List<RecipeByIngredientDto>>
+    + getRecipeDetails(id) : Future<RecipeDetailDto>
+  }
+
+  class RecipeRemoteDataSourceImpl {
+    - _recipeApi : RecipeApi
+  }
+
+  RecipeRemoteDataSourceImpl ..|> RecipeRemoteDataSource
+  RecipeRemoteDataSourceImpl ..> RecipeSearchResponseDto : uses
+  RecipeRemoteDataSourceImpl ..> RecipeByIngredientDto : uses
+  RecipeRemoteDataSourceImpl ..> RecipeDetailDto : uses
+}
+
+' ─────────────────────────────────────────────
+' LOCAL DB TABLE + DATA SOURCE
+' ─────────────────────────────────────────────
+package "Local Data Source" #FFE6CC {
+  class FavoriteRecipes {
+    + id : IntColumn (PK)
+    + title : TextColumn
+    + image : TextColumn?
+    + readyInMinutes : IntColumn?
+    + servings : IntColumn?
+    + summary : TextColumn?
+    + instructions : TextColumn?
+    + sourceUrl : TextColumn?
+    + extendedIngredientsJson : TextColumn?
+    + analyzedInstructionsJson : TextColumn?
+  }
+
+  interface RecipeLocalDataSource {
+    + getFavoriteRecipesFromDb() : Future<List<RecipeEntity>>
+    + getFavoriteRecipeFromDb(id) : Future<RecipeEntity?>
+    + isRecipeFavoriteInDb(id) : Future<bool>
+    + saveFavoriteRecipeToDb(recipe) : Future<void>
+    + deleteFavoriteRecipeFromDb(id) : Future<void>
+  }
+
+  class RecipeLocalDataSourceImpl {
+    - _database : AppDatabase
+  }
+
+  FavoriteRecipes --|> Table
+  RecipeLocalDataSourceImpl ..|> RecipeLocalDataSource
+  RecipeLocalDataSourceImpl ..> FavoriteRecipes : reads/writes
+}
+
+' ─────────────────────────────────────────────
+' MAPPER & REPOSITORY
+' ─────────────────────────────────────────────
+package "Repository" #F0E6FF {
+  class RecipeMapper {
+    + {static} mapRemoteSearchToPreviewList(dto) : List<RecipePreviewEntity>
+    + {static} mapRemoteByIngredientsToPreviewList(list) : List<RecipePreviewEntity>
+    + {static} mapEntityToPreview(entity) : RecipePreviewEntity
+    + {static} mapRemoteDetailToEntity(dto) : RecipeEntity
+    + {static} mapEntityToDbCompanion(entity) : FavoriteRecipesCompanion
+    + {static} mapDbDataToEntity(row) : RecipeEntity
+    - {static} _mapExtendedIngredientToEntity(dto) : IngredientEntity
+    - {static} _mapAnalyzedInstructionsToSteps(list) : List<String>
+  }
+
+  interface RecipeRepository {
+    + searchRecipesByName(query) : Future<List<RecipePreviewEntity>>
+    + findRecipesByMyInventory() : Future<List<RecipePreviewEntity>>
+    + getRecipeDetails(recipeId) : Future<RecipeEntity>
+    + getFavoriteRecipes() : Future<List<RecipePreviewEntity>>
+    + toggleFavoriteRecipe(recipe) : Future<void>
+    + isRecipeFavorite(recipeId) : Stream<bool>
+  }
+
+  class RecipeRepositoryImpl {
+    - _remoteDataSource : RecipeRemoteDataSource
+    - _localDataSource : RecipeLocalDataSource
+    - _inventoryRepository : InventoryRepository
+    - _enrichWithFavoriteStatus(list) : Future<List<RecipePreviewEntity>>
+  }
+
+  RecipeRepositoryImpl ..|> RecipeRepository
+  RecipeRepositoryImpl --> RecipeRemoteDataSource
+  RecipeRepositoryImpl --> RecipeLocalDataSource
+  RecipeRepositoryImpl ..> RecipeMapper
+  RecipeMapper ..> RecipeEntity : creates
+  RecipeMapper ..> RecipePreviewEntity : creates
+  RecipeMapper ..> IngredientEntity : creates
+}
+
+@enduml

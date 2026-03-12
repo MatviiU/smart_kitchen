@@ -15,7 +15,6 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 4;
 
-  /// We will handle migration process here
   @override
   MigrationStrategy get migration {
     return MigrationStrategy(
@@ -24,23 +23,16 @@ class AppDatabase extends _$AppDatabase {
         await m.createAll();
       },
       onUpgrade: (m, from, to) async {
-        /// Run migration steps without foreign keys and re-enable them later
-        /// (https://drift.simonbinder.eu/docs/advanced-features/migrations/#tips)
         await customStatement('PRAGMA foreign_keys = OFF');
 
-        /// [migrationSteps] method coming from db_migration.dart file
-        /// which drift generated
         await transaction(
           () => VersionedSchema.runMigrationSteps(
             migrator: m,
             from: from,
             to: to,
 
-            /// From version 3 to 4
             steps: migrationSteps(
               from3To4: (Migrator m, Schema4 schema) async {
-                /// Write version 4 changes here
-                /// Add new columns to [Products]
                 await m.addColumn(
                   schema.products,
                   schema.products.expirationDate,
@@ -51,7 +43,6 @@ class AppDatabase extends _$AppDatabase {
         );
       },
       beforeOpen: (details) async {
-        /// Enable foreign_keys
         await customStatement('PRAGMA foreign_keys = ON');
       },
     );
